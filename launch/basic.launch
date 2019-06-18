@@ -1,0 +1,54 @@
+<launch>
+
+<!-- Define the generic arguments: -->
+  <arg name="mac_adr0" default="00_06_66_E7_8A_D0" />
+  <arg name="node_start_delay_0" default="0" /> 
+  <arg name="mac_adr1" default="00_06_66_D2_CF_97" />
+  <arg name="node_start_delay_1" default="4" /> 
+  <arg name="mac_adr2" default="00_06_66_E7_8A_44" />
+  <arg name="node_start_delay_2" default="8" /> 
+  <arg name="scale" default="1" />
+  <arg name="paper_width" default="500" />
+  <arg name="paper_length" default="500" /> 
+
+  <arg name="_address" value="D8:14:50:A0:D4:87" /> 
+
+  <arg name="imu_mac_adr_name_left" value="F1_38_44_7A_F9_99" /> 
+
+  <arg name="imu_mac_adr_name_right" value="E5_4D_16_18_CD_90" /> 
+
+<!-- End of generic arguments: -->
+
+    <node name="cellulo_node_$(arg mac_adr0)" pkg="ros_cellulo" type="ros_cellulo" output="screen" args="$(arg mac_adr0)"
+                                        launch-prefix="bash -c 'sleep $(arg node_start_delay_0); $0 $@' ">
+        <param name="scale" type="double" value="$(arg scale)" />
+    </node>
+
+    <node name="cellulo_node_$(arg mac_adr1)" pkg="ros_cellulo" type="ros_cellulo" output="screen" args="$(arg mac_adr1)"
+                                        launch-prefix="bash -c 'sleep $(arg node_start_delay_1); $0 $@' ">
+        <param name="scale" type="double" value="$(arg scale)" />
+    </node>
+
+    <node name="cellulo_node_$(arg mac_adr2)" pkg="ros_cellulo" type="ros_cellulo" output="screen" args="$(arg mac_adr2)"
+                                        launch-prefix="bash -c 'sleep $(arg node_start_delay_2); $0 $@' ">
+        <param name="scale" type="double" value="$(arg scale)" />
+    </node>
+
+    <!-- Static broadcaster between main reference(base_footprint) and reference of the cellulo (paper_world) -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="paper_world_broadcaster" args="1000 0 0 0 0 3.1415 base_footprint paper_world" />
+     <!-- launching rviz  -->
+    <arg name="model" default="$(find ros_cellulo)/urdf/cellulo.urdf"/>
+    <arg name="gui" default="true" />
+    <arg name="config_file" value="$(find ros_cellulo)/rviz/cellulo_rviz.rviz"/>
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(arg config_file)" />
+
+    <node name="pointing_ros_node" pkg="cellulo_pointing_ros" type="cellulo_pointing.py"  output="screen">
+        <param name="scale_coord" type="double" value="$(arg scale)" />
+        <param name="robots_MAC" type="string" value="$(arg mac_adr0) $(arg mac_adr1) $(arg mac_adr2)  "/>
+        <param name="robot_nbr" type="int" value="3" />
+        <param name="address_imu_r" type="string" value="$(arg imu_mac_adr_name_right)" />
+    </node>
+
+
+</launch>
+ <!-- THE END  -->
